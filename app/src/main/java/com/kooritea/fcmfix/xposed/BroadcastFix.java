@@ -1,5 +1,6 @@
 package com.kooritea.fcmfix.xposed;
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -9,6 +10,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 
+import androidx.annotation.RequiresPermission;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -99,7 +101,6 @@ public class BroadcastFix extends XposedModule {
                 }
                 if(intent_args_index == 0 || appOp_args_index == 0){
                     intent_args_index = 0;
-                    appOp_args_index = 0;
                     // 根据参数名称查找，部分经过混淆的系统无效
                     for(int i = 0; i < parameters.length; i++){
                         if("appOp".equals(parameters[i].getName()) && parameters[i].getType() == int.class){
@@ -192,6 +193,7 @@ public class BroadcastFix extends XposedModule {
     protected void startHookScheduleResultTo(){
         Method method = XposedUtils.findMethod(XposedHelpers.findClass("com.android.server.am.BroadcastQueueModernImpl",loadPackageParam.classLoader),"scheduleResultTo",1);
         XposedBridge.hookMethod(method,new XC_MethodHook() {
+            @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
             @Override
             protected void beforeHookedMethod(MethodHookParam methodHookParam) {
                 if(!isBootComplete){

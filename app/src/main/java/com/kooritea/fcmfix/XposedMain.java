@@ -21,7 +21,7 @@ public class XposedMain implements IXposedHookLoadPackage {
 
     @SuppressLint("SdCardPath")
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam loadPackageParam) {
-        if(fileIsExists("/sdcard/disable_fcmfix")){
+        if(fileIsExists()){
             XposedBridge.log("[fcmfix] /sdcard/disable_fcmfix is exists, exit");
             return;
         }
@@ -55,9 +55,9 @@ public class XposedMain implements IXposedHookLoadPackage {
             new PowerkeeperFix(loadPackageParam);
         }
     }
-    private boolean fileIsExists(String strFile) {
+    private boolean fileIsExists() {
         try {
-            File f = new File(strFile);
+            File f = new File("/sdcard/disable_fcmfix");
             if(!f.exists()) {
                 return false;
             }
