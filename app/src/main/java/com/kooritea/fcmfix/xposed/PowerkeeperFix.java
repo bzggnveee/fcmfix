@@ -28,8 +28,8 @@ public class PowerkeeperFix extends XposedModule {
             printLog("[fcmfix] start hook com.miui.powerkeeper.provider.SimpleSettings.Misc.getBoolean");
             XposedUtils.findAndHookMethod(Misc, "getBoolean", 3, new XC_MethodHook() {
                 @Override
-                protected void afterHookedMethod(MethodHookParam methodHookParam) throws Throwable {
-                    if("gms_control".equals((String) methodHookParam.args[1])) {
+                protected void afterHookedMethod(MethodHookParam methodHookParam) {
+                    if("gms_control".equals(methodHookParam.args[1])) {
                         printLog("Success: Success: PowerKeeper GMS Limitation. ", true);
                         methodHookParam.setResult(false);
                     }
@@ -40,7 +40,6 @@ public class PowerkeeperFix extends XposedModule {
 
             XC_MethodHook methodHook = new XC_MethodHook() {
                 protected void beforeHookedMethod(XC_MethodHook.MethodHookParam methodHookParam) throws Throwable {
-                    Field[] declaredFields = null;
                     super.afterHookedMethod(methodHookParam);
                     boolean mSystemBlackList = false;
                     boolean whiteApps = false;
@@ -74,7 +73,8 @@ public class PowerkeeperFix extends XposedModule {
                         printLog("Error: MilletPolicy. Field not found: com.miui.powerkeeper.millet.MilletPolicy.whiteApps");
                     }
                     if (mDataWhiteList) {
-                        List dataWhiteList = (List) XposedHelpers.getObjectField(methodHookParam.thisObject, "mDataWhiteList");
+                        List dataWhiteList =
+                                (List) XposedHelpers.getObjectField(methodHookParam.thisObject, "mDataWhiteList");
                         dataWhiteList.add("com.google.android.gms");
 
                         XposedHelpers.setObjectField(methodHookParam.thisObject, "mDataWhiteList", dataWhiteList);
@@ -84,7 +84,7 @@ public class PowerkeeperFix extends XposedModule {
                 }
             };
             printLog("[fcmfix] start hook com.miui.powerkeeper.millet.MilletPolicy constructor");
-            XposedHelpers.findAndHookConstructor(MilletPolicy, new Object[] {Context.class, methodHook});
+            XposedHelpers.findAndHookConstructor(MilletPolicy, Context.class, methodHook);
 
         } catch (XposedHelpers.ClassNotFoundError | NoSuchMethodError  e){
             printLog("No Such Method com.android.server.am.ProcessMemoryCleaner.checkBackgroundAppException");

@@ -1,12 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 34
+    namespace 'com.kooritea.fcmfix'
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.kooritea.fcmfix"
-        minSdkVersion 29
-        targetSdkVersion 34
+        minSdk 29
+        targetSdk 36
         versionCode 49
         versionName "dev"
 
@@ -14,9 +15,20 @@ android {
     }
 
     buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        debug {
+            minifyEnabled true
+            shrinkResources true
+            debuggable false
+            multiDexEnabled true
+            vcsInfo.include false
+            proguardFiles(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-debuginfo-remove.pro",
+                    "proguard-rules.pro"
+            )
+            ndk {
+                debugSymbolLevel "NONE"
+            }
         }
     }
     compileOptions {
@@ -27,12 +39,21 @@ android {
     lintOptions {
         checkReleaseBuilds false
     }
+
+    // 强制 Kotlin 版本统一
+    configurations.configureEach {
+        resolutionStrategy {
+            force 'org.jetbrains.kotlin:kotlin-stdlib:1.8.22'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+        }
+    }
 }
 
 dependencies {
     compileOnly 'de.robv.android.xposed:api:82'
-    compileOnly 'de.robv.android.xposed:api:82:sources'
+    // compileOnly 'de.robv.android.xposed:api:82:sources'  避免 IDE 冲突
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation 'androidx.appcompat:appcompat:1.5.1'
-    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.recyclerview:recyclerview:1.4.0'
 }

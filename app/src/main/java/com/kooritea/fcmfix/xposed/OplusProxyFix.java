@@ -46,11 +46,11 @@ public class OplusProxyFix extends XposedModule {
         */
     }
 
-    private void startHookOplusProxyBroadcast() throws Exception {
+    private void startHookOplusProxyBroadcast() {
         Class<?> oplusProxyBroadcastClass = XposedHelpers.findClass("com.android.server.am.OplusProxyBroadcast", loadPackageParam.classLoader);
         Class<?> resultEnum = XposedHelpers.findClass("com.android.server.am.OplusProxyBroadcast$RESULT", loadPackageParam.classLoader);
         Object notIncludeValue = XposedHelpers.getStaticObjectField(resultEnum, "NOT_INCLUDE");
-        Object proxyValue = XposedHelpers.getStaticObjectField(resultEnum, "PROXY");
+        XposedHelpers.getStaticObjectField(resultEnum, "PROXY");
 
         /*
         XXX only tested on OnePlus13T ColorOS 15
@@ -67,7 +67,7 @@ public class OplusProxyFix extends XposedModule {
 
         XposedUtils.findAndHookMethod(oplusProxyBroadcastClass, "shouldProxy", 8, new XC_MethodHook() {
             @Override
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            protected void beforeHookedMethod(MethodHookParam param) {
                 String callingPkg = (String)param.args[3];
                 String pkgName = (String)param.args[5];
                 String action = (String)param.args[6];
@@ -80,12 +80,12 @@ public class OplusProxyFix extends XposedModule {
         });
     }
 
-    private void startHookOplusProxyWakeLock() throws Exception {
+    private void startHookOplusProxyWakeLock() {
         Class<?> oplusWakelockClass = XposedHelpers.findClass("com.android.server.power.OplusProxyWakeLock", loadPackageParam.classLoader);
 
         XposedUtils.findAndHookConstructorAnyParam(oplusWakelockClass, new XC_MethodHook() {
             @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+            protected void afterHookedMethod(MethodHookParam param) {
                 if (s_oplusProxyWakeLock != null) {
                     printLog("warn: OplusProxyWakeLock constructed multiple times!");
                     return;

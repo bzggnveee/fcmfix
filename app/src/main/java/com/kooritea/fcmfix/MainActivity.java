@@ -31,6 +31,8 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.kooritea.fcmfix.util.IceboxUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,9 +49,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
-
-import com.kooritea.fcmfix.util.IceboxUtils;
 
 public class MainActivity extends AppCompatActivity {
     private AppListAdapter appListAdapter;
@@ -63,9 +64,13 @@ public class MainActivity extends AppCompatActivity {
         public Boolean isAllow = false;
         public Boolean includeFcm = false;
         public AppInfo(PackageInfo packageInfo){
-            this.name = packageInfo.applicationInfo.loadLabel(getPackageManager()).toString();
+            if (packageInfo.applicationInfo != null) {
+                this.name = packageInfo.applicationInfo.loadLabel(getPackageManager()).toString();
+            }
             this.packageName = packageInfo.packageName;
-            this.icon = packageInfo.applicationInfo.loadIcon(getPackageManager());
+            if (packageInfo.applicationInfo != null) {
+                this.icon = packageInfo.applicationInfo.loadIcon(getPackageManager());
+            }
         }
     }
 
@@ -142,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
             _allowList.addAll(_notAllowList);
             _allowList.addAll(_notFoundFcm);
             this.mAppList = _allowList;
-            if(_allowList.size() == 0 || _allowList.isEmpty() ||(_allowList.size() == 1 && "com.kooritea.fcmfix".equals(_allowList.get(0).packageName))){
+            if(_allowList.isEmpty() || _allowList.size() == 1 && "com.kooritea.fcmfix".equals(_allowList.get(0).packageName)){
                 new AlertDialog.Builder(MainActivity.this)
                         .setTitle("请在系统设置中授予读取应用列表权限")
                         .setMessage("或直接编辑" + getApplicationContext().getFilesDir().getAbsolutePath() + "/config.json(需重启生效)")
@@ -254,6 +259,7 @@ public class MainActivity extends AppCompatActivity {
         this.updateConfig();
     }
 
+    @SuppressLint("WorldReadableFiles")
     private void updateConfig(){
         try {
             SharedPreferences pref;
@@ -269,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
                 sharedPreferencesEditor.putBoolean("disableAutoCleanNotification", this.config.getBoolean("disableAutoCleanNotification"));
                 sharedPreferencesEditor.putBoolean("includeIceBoxDisableApp", this.config.getBoolean("includeIceBoxDisableApp"));
                 sharedPreferencesEditor.putBoolean("noResponseNotification", this.config.getBoolean("noResponseNotification"));
-                sharedPreferencesEditor.commit();
+                sharedPreferencesEditor.apply();
             }
         } catch (Throwable e) {
             Log.e("updateConfig",e.toString());
@@ -306,32 +312,32 @@ public class MainActivity extends AppCompatActivity {
     public final boolean onPrepareOptionsMenu(Menu menu) {
         for (int i = 0; i < menu.size(); i++) {
             MenuItem item = menu.getItem(i);
-            if("隐藏启动器图标".equals(item.getTitle())){
+            if("隐藏启动器图标".contentEquals(Objects.requireNonNull(item.getTitle()))){
                 PackageManager packageManager = getPackageManager();
                 item.setChecked(packageManager.getComponentEnabledSetting(new ComponentName("com.kooritea.fcmfix", "com.kooritea.fcmfix.Home")) == PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
             }
-            if("阻止应用停止时自动清除通知".equals(item.getTitle())){
+            if("阻止应用停止时自动清除通知".contentEquals(item.getTitle())){
                 try {
                     item.setChecked(this.config.getBoolean("disableAutoCleanNotification"));
                 } catch (JSONException e) {
                     item.setChecked(false);
                 }
             }
-            if("允许唤醒被冰箱冻结的应用".equals(item.getTitle())){
+            if("允许唤醒被冰箱冻结的应用".contentEquals(item.getTitle())){
                 try {
                     item.setChecked(this.config.getBoolean("includeIceBoxDisableApp"));
                 } catch (JSONException e) {
                     item.setChecked(false);
                 }
             }
-            if("目标无响应时代发提示通知".equals(item.getTitle())){
+            if("目标无响应时代发提示通知".contentEquals(item.getTitle())){
                 try {
                     item.setChecked(this.config.getBoolean("noResponseNotification"));
                 } catch (JSONException e) {
                     item.setChecked(false);
                 }
             }
-            if("全选包含 FCM 的应用".equals(item.getTitle())){
+            if("全选包含 FCM 的应用".contentEquals(item.getTitle())){
                 item.setOnMenuItemClickListener(menuItem -> {
                     for(AppInfo appInfo : appListAdapter.mAppList){
                         if(appInfo.includeFcm){
@@ -343,7 +349,7 @@ public class MainActivity extends AppCompatActivity {
                     return false;
                 });
             }
-            if("打开FCM Diagnostics".equals(item.getTitle())){
+            if("打开FCM Diagnostics".contentEquals(item.getTitle())){
                 item.setOnMenuItemClickListener(menuItem -> {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -359,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public final boolean onOptionsItemSelected(MenuItem menuItem) {
-        if(menuItem.getTitle().equals("隐藏启动器图标")){
+        if(Objects.equals(menuItem.getTitle(), "隐藏启动器图标")){
             PackageManager packageManager = getPackageManager();
             packageManager.setComponentEnabledSetting(
                     new ComponentName("com.kooritea.fcmfix", "com.kooritea.fcmfix.Home"),
@@ -367,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
                     PackageManager.DONT_KILL_APP
             );
         }
-        if(menuItem.getTitle().equals("阻止应用停止时自动清除通知")){
+        if(Objects.equals(menuItem.getTitle(), "阻止应用停止时自动清除通知")){
             try {
                 this.config.put("disableAutoCleanNotification", !menuItem.isChecked());
                 this.updateConfig();
@@ -375,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("onOptionsItemSelected",e.toString());
             }
         }
-        if(menuItem.getTitle().equals("允许唤醒被冰箱冻结的应用")){
+        if(Objects.equals(menuItem.getTitle(), "允许唤醒被冰箱冻结的应用")){
             try {
                 this.config.put("includeIceBoxDisableApp", !menuItem.isChecked());
                 this.updateConfig();

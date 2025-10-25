@@ -19,6 +19,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 public class XposedProvider extends ContentProvider {
 
@@ -48,7 +49,7 @@ public class XposedProvider extends ContentProvider {
         //这里填写查询逻辑
         JSONObject config = new JSONObject();
         try {
-            FileInputStream fis = getContext().openFileInput("config.json");
+            FileInputStream fis = Objects.requireNonNull(getContext()).openFileInput("config.json");
             InputStreamReader inputStreamReader = new InputStreamReader(fis, StandardCharsets.UTF_8);
             StringBuilder stringBuilder = new StringBuilder();
             BufferedReader reader = new BufferedReader(inputStreamReader);
