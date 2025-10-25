@@ -14,6 +14,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+android {
     buildTypes {
         debug {
             minifyEnabled true
@@ -30,7 +31,24 @@ android {
                 debugSymbolLevel "NONE"
             }
         }
+
+        release {
+            minifyEnabled true
+            shrinkResources true
+            debuggable false
+            multiDexEnabled true
+            vcsInfo.include false
+            proguardFiles(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-debuginfo-remove.pro",
+                    "proguard-rules.pro"
+            )
+            ndk {
+                debugSymbolLevel "NONE"
+            }
+        }
     }
+}
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
